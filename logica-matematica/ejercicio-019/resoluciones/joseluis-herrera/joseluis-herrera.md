@@ -1,0 +1,3 @@
+# Ejercicio 19 
+# Explicación
+En este ejercicio se cambia la estructura simple por un sistema de inventario múltiple usando diccionarios. El objetivo es comparar los elementos que exige una fórmula compleja contra las existencias reales del laboratorio. Usando un ciclo, el programa revisa componente por componente para asegurar que no falte un solo reactivo antes de aprobar la preparación de la mezcla.

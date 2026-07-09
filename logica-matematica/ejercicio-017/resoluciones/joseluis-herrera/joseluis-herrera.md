@@ -1,0 +1,3 @@
+# Ejercicio 17
+# Explicación
+En este ejercicio se evalúa y clasifica el rendimiento de un renderizado en arquitectura 3D para posicionarlo en un ranking de calidad. El objetivo es estructurar una función que calcule una puntuación basada en la eficiencia del tiempo de renderizado y el nivel de detalle de las texturas, determinando automáticamente si el diseño cumple con las exigencias del mercado profesional.
