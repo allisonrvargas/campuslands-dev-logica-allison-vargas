@@ -1,0 +1,39 @@
+# Plantilla de solucion
+
+## Analisis
+
+* **Entrada**: Un arreglo numérico `frames` (representando valores de escenas) y un número `intervalo` para determinar eventos críticos.
+* **Proceso**: Cálculo de la suma total de valores, identificación de momentos críticos mediante el operador módulo, ponderación del puntaje final y clasificación basada en la densidad de eventos.
+* **Salida**: Un objeto que contiene el `puntaje_total`, la `clasificacion` obtenida y una `explicacion` sobre la cantidad de momentos críticos detectados.
+
+## Reglas identificadas
+
+1. Los momentos de terror intenso ("jump scares") ocurren cuando un valor en `frames` es exactamente divisible por `intervalo`.
+2. El puntaje total es la suma de todos los valores de `frames` más un bono de 10 puntos por cada "jump scare" detectado.
+3. La clasificación es "Intensa" si la cantidad de "jump scares" es mayor a un tercio del total de escenas (`frames.length / 3`); de lo contrario, es "Suspenso Moderado".
+
+## Pruebas
+
+### Caso normal
+
+* **Entrada**: `frames: [10, 20, 30, 40], intervalo: 10`
+* **Resultado esperado**: `{ puntaje_total: 140, clasificacion: "Intensa", ... }`
+
+### Caso borde
+
+* **Entrada**: `frames: [5, 7, 11], intervalo: 10`
+* **Resultado esperado**: `{ puntaje_total: 23, clasificacion: "Suspenso Moderado", ... }`
+
+## Explicacion final
+
+La solución funciona al integrar métodos funcionales de JavaScript: `reduce` permite consolidar el valor base de la intensidad de la película, mientras que `filter` junto con el operador módulo permite aislar y contar con precisión los eventos críticos. La lógica de clasificación posterior transforma estos datos cuantitativos en una categoría cualitativa que cumple con los requerimientos de análisis solicitados.
+
+## Sugerencia
+
+Verifica cada operacion con calculos manuales antes de confiar en el codigo:
+
+* **Ejemplo manual (caso normal)**:
+* Suma: $10+20+30+40 = 100$.
+* "Jump Scares" ($10, 20, 30, 40$ son divisibles por $10$): $4$ eventos.
+* Cálculo final: $100 + (4 \times 10) = 140$.
+* Umbral: $4 > (4 / 3)$ (es decir, $4 > 1.33$), por lo tanto es `"Intensa"`.

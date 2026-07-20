@@ -1,0 +1,3 @@
+# Ejercicio 25
+# Explicación
+Esta segunda solución optimiza el flujo dividiendo las tareas del programa: una función pura encargada únicamente de comparar números y retornar el estado físico de la pieza ("Fallo Crítico", "Cambio Preventivo" u "OK"), y un módulo principal que mapea el inventario de la inspección, eliminando los registros que se encuentran estables para entregar un reporte limpio de averías.

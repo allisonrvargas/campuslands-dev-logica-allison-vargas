@@ -1,0 +1,3 @@
+# Ejercicio 25
+# Explicación
+En este ejercicio se diseña un sistema de alertas para un taller mecánico encargado de auditar los fluidos y piezas de desgaste de un automóvil. El objetivo es estructurar una función que examine los niveles actuales frente a los límites mínimos sugeridos por el fabricante y un límite de seguridad crítico general, determinando la gravedad de los mantenimientos requeridos.
