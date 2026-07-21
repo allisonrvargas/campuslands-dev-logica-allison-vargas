@@ -1,43 +1,63 @@
-function evaluarEficienciaEnergetica(dispositivo) {
-    // Caso borde: Datos nulos, horas negativas o superiores a un día real (24h)
-    if (!dispositivo || dispositivo.horasEncendido < 0 || dispositivo.horasEncendido > 24 || dispositivo.consumoWatts < 0) {
+function procesarInscripcionEsports(jugadorInscripcion) {
+    // Caso borde: Datos nulos, vacíos o estructuras de datos corruptas
+    if (!jugadorInscripcion || typeof jugadorInscripcion !== "object") {
         return {
-            consumoDiarioWh: 0,
-            eficienciaNivel: "error_telemetria",
-            requiereOptimizacion: false
+            estadoInscripcion: "rechazado",
+            bracketAsignado: "ninguno",
+            motivo: "Error de sistema: El formulario de inscripción se encuentra vacío o es inválido."
         };
     }
 
-    const { consumoWatts, horasEncendido } = dispositivo;
+    const { nickname, rangoPuntos, edad, tienePenalizaciones } = jugadorInscripcion;
 
-    // Proceso: Calcular consumo diario acumulado
-    const consumoDiarioWh = consumoWatts * horasEncendido;
-
-    // Evaluar regla de negocio para consumo crítico
-    if (consumoDiarioWh > 1200) {
+    // Proceso: Evaluar regla de Fair Play (Penalizaciones de conducta)
+    if (tienePenalizaciones === true) {
         return {
-            consumoDiarioWh: consumoDiarioWh,
-            eficienciaNivel: "alta_demanda",
-            requiereOptimizacion: true
+            estadoInscripcion: "rechazado",
+            bracketAsignado: "ninguno",
+            motivo: "Inscripción cancelada. El jugador cuenta con sanciones de comportamiento activas en el sistema."
+        };
+    }
+
+    // Evaluar reglas para menor de edad sin los requisitos mínimos de liga
+    if (edad < 16) {
+        return {
+            estadoInscripcion: "rechazado",
+            bracketAsignado: "ninguno",
+            motivo: "El aspirante no cumple con la edad mínima reglamentaria (16 años) para torneos oficiales."
+        };
+    }
+
+    // Clasificación por Rango / Elo competitivo
+    if (rangoPuntos >= 2500) {
+        return {
+            estadoInscripcion: "aprobado",
+            bracketAsignado: "profesional",
+            motivo: `El jugador ${nickname} cumple con la edad mínima, supera el elo requerido y mantiene un historial limpio de penalizaciones.`
         };
     }
 
     return {
-        consumoDiarioWh: consumoDiarioWh,
-        eficienciaNivel: "eficiente",
-        requiereOptimizacion: false
+        estadoInscripcion: "aprobado",
+        bracketAsignado: "aspirantes",
+        motivo: `Inscripción aceptada para la liga de desarrollo debido a un nivel de rango menor a 2500 puntos.`
     };
 }
 
 // Ejecución de pruebas para verificar consola
-console.log(evaluarEficienciaEnergetica({
-    nombre: "Servidor IoT ESP32",
-    consumoWatts: 60,
-    horasEncendido: 24
-})); // Caso Normal
+const postulanteValido = {
+    nickname: "XenonGamer",
+    rangoPuntos: 2800,
+    edad: 19,
+    tienePenalizaciones: false
+};
 
-console.log(evaluarEficienciaEnergetica({
-    nombre: "Foco Inteligente",
-    consumoWatts: 12,
-    horasEncendido: -5
-})); // Caso Borde
+const postulanteSancionado = {
+    nickname: "ToxicPlayer",
+    rangoPuntos: 3100,
+    edad: 22,
+    tienePenalizaciones: true
+};
+
+console.log(procesarInscripcionEsports(postulanteValido));   // Caso Normal
+console.log(procesarInscripcionEsports(postulanteSancionado)); // Caso Borde

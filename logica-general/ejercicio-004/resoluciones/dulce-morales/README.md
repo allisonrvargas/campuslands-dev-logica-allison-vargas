@@ -2,48 +2,44 @@
 
 ## Analisis
 
-- Entrada: Un objeto `sensor` con las propiedades `tipo` (texto), `voltajeLectura` (número) y `limiteMaximo` (número).
-- Proceso: Validar que el voltaje de lectura no sea negativo y evaluar si la señal supera el límite tolerable para prevenir un cortocircuito o sobrecarga en el pin del microcontrolador.
-- Salida: Un objeto con el estado de la señal analógica, si se encuentra en niveles de peligro o desbordamiento y si se debe activar el sistema de protección de hardware.
+- Entrada: Un arreglo `inventarioMotos` con objetos que representan motocicletas (propiedades `modelo`, `cilindraje`, `precio` y `disponible`) y un objeto `criteriosFiltro` (con propiedades como `cilindrajeMinimo` o `precioMaximo`).
+- Proceso: Evaluar cada motocicleta de la lista para comprobar si cumple simultáneamente con las condiciones de cilindraje mínimo, presupuesto máximo y si está disponible para entrega inmediata.
+- Salida: Un arreglo con los modelos de motocicletas que pasaron con éxito todos los filtros establecidos y un mensaje con el motivo técnico del resultado.
 
 ## Reglas identificadas
 
-1. Regla de Sobretensión: Si el `voltajeLectura` es mayor o igual al `limiteMaximo`, el estado de la señal cambia a `"sobrecarga"` y la activación de protección debe ponerse en verdadero (`true`).
-2. Regla de Ruido Eléctrico Absoluto: Si el voltaje es menor que cero, se clasifica como una anomalía física de la línea de datos y se interrumpe la lectura para proteger los registros de memoria.
+1. Regla de Filtrado Excluyente: Para que una motocicleta sea incluida en el resultado final, debe cumplir obligatoriamente con todos los criterios de búsqueda al mismo tiempo (operación lógica AND).
+2. Regla de Disponibilidad de Stock: Si una motocicleta cumple con el precio y cilindraje pero su propiedad `disponible` es falsa (`false`), debe ser descartada del inventario activo por falta de existencias físicas.
 
 ## Pruebas
 
 ### Caso normal
 
 Entrada:
-sensor: {
-  tipo: "Infrarrojo TCRT5000",
-  voltajeLectura: 4.8,
-  limiteMaximo: 3.3
-}
+inventarioMotos: [
+  { modelo: "Yamaha R3", cilindraje: 321, precio: 5500, disponible: true },
+  { modelo: "Honda CB190R", cilindraje: 184, precio: 3200, disponible: true },
+  { modelo: "Kawasaki Ninja 400", cilindraje: 399, precio: 6200, disponible: false }
+]
+criteriosFiltro: { cilindrajeMinimo: 250, precioMaximo: 6000 }
 
 Resultado esperado:
-estadoSenal: "sobrecarga"
-voltajeExcedido: 1.5
-activarProteccion: true
+motosFiltradas: ["Yamaha R3"]
+motivo: "Se filtraron los modelos que superan los 250cc y no exceden el presupuesto de 6000. La Ninja 400 cumple las especificaciones pero se descartó por no estar disponible en stock."
 
 ### Caso borde
 
 Entrada:
-sensor: {
-  tipo: "Ultrasonico HC-SR04",
-  voltajeLectura: -1.2,
-  limiteMaximo: 5.0
-}
+inventarioMotos: []
+criteriosFiltro: { cilindrajeMinimo: 150, precioMaximo: 4000 }
 
 Resultado esperado:
-estadoSenal: "error_voltaje_negativo"
-voltajeExcedido: 0
-activarProteccion: false
+motosFiltradas: []
+motivo: "El inventario de motocicletas se encuentra vacío o los criterios de búsqueda no están inicializados."
 
 ## Explicacion final
 
-La solución funciona porque utiliza una estructura de control condicional que actúa como un fusible de software (Software Fuse). Al interceptar valores menores a cero voltios, descarta lecturas ruidosas que dañarían las operaciones aritméticas, y mediante una resta matemática simple determina la diferencia exacta de voltaje excedido para disparar los protocolos de mitigación de hardware de forma inmediata.
+La solución funciona porque utiliza el método de filtrado nativo de JavaScript para recorrer el catálogo de motos aplicando un validador compuesto. El algoritmo actúa como un tamiz que descarta en primer lugar las unidades sin stock disponible, y posteriormente realiza comparaciones numéricas directas de límites sobre el cilindraje y el coste monetario, asegurando que solo los modelos aptos lleguen a la selección final del cliente.
 
 ## Sugerencia
 

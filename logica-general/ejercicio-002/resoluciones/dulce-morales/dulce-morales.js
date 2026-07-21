@@ -1,43 +1,65 @@
-function verificarStockMinimo(producto) {
-    // Caso borde: Datos nulos, vacíos o stocks negativos físicamente imposibles
-    if (!producto || producto.stockActual < 0 || producto.stockMinimoSeguridad < 0) {
+function validarRankingFutsal(equipoEstadisticas) {
+    // Caso borde primario: Datos nulos, vacíos o tipos de datos incorrectos
+    if (!equipoEstadisticas || typeof equipoEstadisticas !== "object") {
         return {
-            alertaCompra: false,
-            unidadesPedir: 0,
-            estadoAlmacen: "error_stock_negativo"
+            datosValidos: false,
+            estadoRanking: "error_estructura",
+            motivo: "Error de sistema: No se han proporcionado estadísticas válidas para evaluar."
         };
     }
 
-    const { nombre, stockActual, stockMinimoSeguridad } = producto;
+    const { nombre, partidosJugados, partidosGanados, puntosActuales } = equipoEstadisticas;
 
-    // Proceso: Evaluar regla de negocio para alertas de compra (Quiebre de stock)
-    if (stockActual <= stockMinimoSeguridad) {
-        // Fórmula para calcular el lote óptimo a pedir
-        const unidadesPedir = (stockMinimoSeguridad * 3) - stockActual;
-        
+    // Caso borde secundario: Valores numéricos negativos físicamente imposibles
+    if (partidosJugados < 0 || partidosGanados < 0 || puntosActuales < 0) {
         return {
-            alertaCompra: true,
-            unidadesPedir: unidadesPedir,
-            estadoAlmacen: "solicitar_reabastecimiento"
+            datosValidos: false,
+            estadoRanking: "error_inconsistencia",
+            motivo: "Error de validación: Las métricas deportivas no pueden contener valores negativos."
         };
     }
 
+    // Proceso: Evaluar regla de consistencia de partidos (Ganados nunca mayor a Jugados)
+    if (partidosGanados > partidosJugados) {
+        return {
+            datosValidos: false,
+            estadoRanking: "error_inconsistencia",
+            motivo: "Error de validación: El número de partidos ganados excede los partidos jugados, o la puntuación supera el límite teórico máximo."
+        };
+    }
+
+    // Evaluar regla de consistencia de puntuación (Máximo 3 puntos por partido jugado)
+    const puntosMaximosPosibles = partidosJugados * 3;
+    if (puntosActuales > puntosMaximosPosibles) {
+        return {
+            datosValidos: false,
+            estadoRanking: "error_inconsistencia",
+            motivo: "Error de validación: El número de partidos ganados excede los partidos jugados, o la puntuación supera el límite teórico máximo."
+        };
+    }
+
+    // Si pasa todos los filtros de auditoría, los datos son correctos
     return {
-        alertaCompra: false,
-        unidadesPedir: 0,
-        estadoAlmacen: "inventario_estable"
+        datosValidos: true,
+        estadoRanking: "datos_verificados",
+        motivo: `Las estadísticas del equipo ${nombre} son matemáticamente consistentes y aptas para actualizar la tabla general.`
     };
 }
 
 // Ejecución de pruebas para verificar consola
-console.log(verificarStockMinimo({
-    nombre: "Cautín para Soldar ESP32",
-    stockActual: 3,
-    stockMinimoSeguridad: 10
-})); // Caso Normal
+const equipoCoherente = {
+    nombre: "Futsal Campuslands",
+    partidosJugados: 5,
+    partidosGanados: 3,
+    puntosActuales: 10
+};
 
-console.log(verificarStockMinimo({
-    nombre: "Destornillador de Precisión",
-    stockActual: -5,
-    stockMinimoSeguridad: 5
-})); // Caso Borde
+const equipoIncoherente = {
+    nombre: "Sporting Ruidoso",
+    partidosJugados: 4,
+    partidosGanados: 5,
+    puntosActuales: 15
+};
+
+console.log(validarRankingFutsal(equipoCoherente));   // Caso Normal
+console.log(validarRankingFutsal(equipoIncoherente)); // Caso Borde

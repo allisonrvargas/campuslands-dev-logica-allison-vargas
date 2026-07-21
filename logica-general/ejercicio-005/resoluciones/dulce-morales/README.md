@@ -2,48 +2,42 @@
 
 ## Analisis
 
-- Entrada: Un objeto `dispositivo` con las propiedades `nombre` (texto), `consumoWatts` (número) y `horasEncendido` (número).
-- Proceso: Validar que el tiempo y las métricas de consumo no sean negativos, calcular el gasto energético total diario y clasificar la eficiencia del hardware.
-- Salida: Un objeto con el consumo diario en Watts-hora, el nivel de eficiencia energética asignado y si requiere o no un plan de optimización de consumo.
+- Entrada: Un arreglo `listaVehiculos` con objetos que representan órdenes de reparación (propiedades `placa`, `fallaTipo` e `ingresoHoras`) y una regla de prioridad especificada.
+- Proceso: Clasificar y ordenar las órdenes de trabajo del taller mecánico de acuerdo con la gravedad de la falla mecánica detectada para organizar la cola de los técnicos.
+- Salida: Un arreglo ordenado con los vehículos que deben ser atendidos con mayor urgencia y la descripción del motivo de asignación.
 
 ## Reglas identificadas
 
-1. Regla de Consumo Crítico: Si un dispositivo consume más de 1200 Watts-hora al día, se clasifica automáticamente con eficiencia `"alta_demanda"` y se activa la alerta de optimización en verdadero (`true`).
-2. Regla de Validación de Operación: Si las horas de encendido exceden las 24 horas en un solo día o contienen valores negativos, se suspende el cálculo por inconsistencia en la telemetría.
+1. Regla de Prioridad de Riesgo: Los vehículos con fallas en los frenos (`"frenos"`) o sistemas de dirección tienen prioridad crítica absoluta sobre mantenimientos preventivos o cambios de aceite.
+2. Regla de Tiempo de Espera: A igualdad de gravedad en la falla mecánica, el vehículo que ingresó primero al taller (menor valor en `ingresoHoras`) debe ser atendido primero.
 
 ## Pruebas
 
 ### Caso normal
 
 Entrada:
-dispositivo: {
-  nombre: "Servidor IoT ESP32",
-  consumoWatts: 60,
-  horasEncendido: 24
-}
+listaVehiculos: [
+  { placa: "M-456B", fallaTipo: "cambio_aceite", ingresoHoras: 3 },
+  { placa: "P-123A", fallaTipo: "frenos", ingresoHoras: 2 },
+  { placa: "P-789C", fallaTipo: "frenos", ingresoHoras: 1 }
+]
 
 Resultado esperado:
-consumoDiarioWh: 1440
-eficienciaNivel: "alta_demanda"
-requiereOptimizacion: true
+ordenAtencion: ["P-789C", "P-123A", "M-456B"]
+motivo: "Se priorizan los fallos en sistema de frenos. Al haber empate, el vehículo P-789C se atiende primero por registrar mayor tiempo de espera desde su ingreso."
 
 ### Caso borde
 
 Entrada:
-dispositivo: {
-  nombre: "Foco Inteligente",
-  consumoWatts: 12,
-  horasEncendido: -5
-}
+listaVehiculos: []
 
 Resultado esperado:
-consumoDiarioWh: 0
-eficienciaNivel: "error_telemetria"
-requiereOptimizacion: false
+ordenAtencion: []
+motivo: "No hay vehículos en la cola de espera del taller mecánico."
 
-## Explicación final
+## Explicacion final
 
-La solución funciona porque realiza un filtrado preventivo sobre las horas de encendido para asegurar que se mantengan dentro del límite físico de un ciclo diario (0 a 24 horas). Al procesar únicamente datos coherentes, la multiplicación directa determina el consumo real acumulado, permitiendo segmentar el hardware según las políticas de ahorro energético del laboratorio de manera confiable.
+La solución funciona porque implementa el método nativo de ordenamiento analizando dos niveles jerárquicos (Multi-level Sort). En primer lugar, mapea el tipo de falla mecánica a un valor numérico de peso jerárquico para empujar los riesgos críticos al inicio de la fila. En segundo lugar, resuelve los empates técnicos mediante una comparación cronológica basada en la hora de ingreso, garantizando un flujo justo y seguro en el taller.
 
 ## Sugerencia
 

@@ -15,10 +15,6 @@ function procesarReglasDibujoDigital(items, prioridad, regla) {
         };
     }
 
-<<<<<<< HEAD
-=======
-    // Sanitización hermética de tipos en la cabecera
->>>>>>> upstream/dev
     const reglaLimpia = String(regla).toLowerCase().trim();
     const prioridadLimpia = String(prioridad).toLowerCase().trim();
 

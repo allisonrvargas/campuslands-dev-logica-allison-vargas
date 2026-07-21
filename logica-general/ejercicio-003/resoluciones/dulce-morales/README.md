@@ -2,48 +2,50 @@
 
 ## Analisis
 
-- Entrada: Un objeto `dispositivo` con las propiedades `nombre` (texto), `consumoWatts` (número) y `horasEncendido` (número).
-- Proceso: Validar que el tiempo y las métricas de consumo no sean negativos, calcular el gasto energético total diario y clasificar la eficiencia del hardware.
-- Salida: Un objeto con el consumo diario en Watts-hora, el nivel de eficiencia energética asignado y si requiere o no un plan de optimización de consumo.
+- Entrada: Un objeto `jugadorInscripcion` con las propiedades `nickname` (texto), `rangoPuntos` (número), `edad` (número) y `tienePenalizaciones` (booleano).
+- Proceso: Evaluar los datos del pro-player para verificar si cumple simultáneamente con los criterios de edad legal competitiva, nivel de habilidad mínimo y excelente conducta en el servidor.
+- Salida: Un objeto que indica el estado de la inscripción del competidor, la categoría del bracket asignado y el motivo técnico de la resolución.
 
 ## Reglas identificadas
 
-1. Regla de Consumo Crítico: Si un dispositivo consume más de 1200 Watts-hora al día, se clasifica automáticamente con eficiencia `"alta_demanda"` y se activa la alerta de optimización en verdadero (`true`).
-2. Regla de Validación de Operación: Si las horas de encendido exceden las 24 horas en un solo día o contienen valores negativos, se suspende el cálculo por inconsistencia en la telemetría.
+1. Regla de Admisión Competitiva: Si el jugador tiene al menos 16 años, posee un rango mayor o igual a 2500 puntos de elo y su propiedad `tienePenalizaciones` es falsa (`false`), su inscripción se aprueba de inmediato en el bracket `"profesional"`.
+2. Regla de Fair Play Estricta: Si el jugador cuenta con reportes o penalizaciones activas (`true`), su ingreso queda automáticamente denegado para salvaguardar la integridad competitiva del torneo.
 
 ## Pruebas
 
 ### Caso normal
 
 Entrada:
-dispositivo: {
-  nombre: "Servidor IoT ESP32",
-  consumoWatts: 60,
-  horasEncendido: 24
+jugadorInscripcion: {
+  nickname: "XenonGamer",
+  rangoPuntos: 2800,
+  edad: 19,
+  tienePenalizaciones: false
 }
 
 Resultado esperado:
-consumoDiarioWh: 1440
-eficienciaNivel: "alta_demanda"
-requiereOptimizacion: true
+estadoInscripcion: "aprobado"
+bracketAsignado: "profesional"
+motivo: "El jugador XenonGamer cumple con la edad mínima, supera el elo requerido y mantiene un historial limpio de penalizaciones."
 
 ### Caso borde
 
 Entrada:
-dispositivo: {
-  nombre: "Foco Inteligente",
-  consumoWatts: 12,
-  horasEncendido: -5
+jugadorInscripcion: {
+  nickname: "ToxicPlayer",
+  rangoPuntos: 3100,
+  edad: 22,
+  tienePenalizaciones: true
 }
 
 Resultado esperado:
-consumoDiarioWh: 0
-eficienciaNivel: "error_telemetria"
-requiereOptimizacion: false
+estadoInscripcion: "rechazado"
+bracketAsignado: "ninguno"
+motivo: "Inscripción cancelada. El jugador cuenta con sanciones de comportamiento activas en el sistema."
 
-## Explicación final
+## Explicacion final
 
-La solución funciona porque realiza un filtrado preventivo sobre las horas de encendido para asegurar que se mantengan dentro del límite físico de un ciclo diario (0 a 24 horas). Al procesar únicamente datos coherentes, la multiplicación directa determina el consumo real acumulado, permitiendo segmentar el hardware según las políticas de ahorro energético del laboratorio de manera confiable.
+La solución funciona porque procesa de forma secuencial las directivas de elegibilidad del torneo mediante compuertas lógicas bien definidas. El algoritmo evalúa el historial de comportamiento ético (Fair Play) como un filtro crítico excluyente; una vez superado, analiza los valores numéricos del rango competitivo (elo) y la edad biológica del participante para asignarle la categoría de juego correspondiente o vetar su acceso de manera segura.
 
 ## Sugerencia
 

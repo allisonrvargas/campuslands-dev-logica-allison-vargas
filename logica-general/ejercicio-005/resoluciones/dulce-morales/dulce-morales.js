@@ -1,43 +1,50 @@
-function evaluarEficienciaEnergetica(dispositivo) {
-    // Caso borde: Datos nulos, horas negativas o superiores a un día real (24h)
-    if (!dispositivo || dispositivo.horasEncendido < 0 || dispositivo.horasEncendido > 24 || dispositivo.consumoWatts < 0) {
+function ordenarPrioridadesTaller(listaVehiculos) {
+    // Caso borde: Cola del taller vacía o datos nulos
+    if (!listaVehiculos || listaVehiculos.length === 0) {
         return {
-            consumoDiarioWh: 0,
-            eficienciaNivel: "error_telemetria",
-            requiereOptimizacion: false
+            ordenAtencion: [],
+            motivo: "No hay vehículos en la cola de espera del taller mecánico."
         };
     }
 
-    const { consumoWatts, horasEncendido } = dispositivo;
+    // Mapa de peso de prioridades por tipo de falla (A mayor número, mayor urgencia)
+    const pesoFalla = {
+        "frenos": 3,
+        "direccion": 3,
+        "motor": 2,
+        "cambio_aceite": 1,
+        "estetica": 0
+    };
 
-    // Proceso: Calcular consumo diario acumulado
-    const consumoDiarioWh = consumoWatts * horasEncendido;
+    // Proceso: Ordenamiento avanzado multivariable
+    const vehiculosOrdenados = [...listaVehiculos].sort((vehiculoA, vehiculoB) => {
+        const pesoA = pesoFalla[vehiculoA.fallaTipo] !== undefined ? pesoFalla[vehiculoA.fallaTipo] : -1;
+        const pesoB = pesoFalla[vehiculoB.fallaTipo] !== undefined ? pesoFalla[vehiculoB.fallaTipo] : -1;
 
-    // Evaluar regla de negocio para consumo crítico
-    if (consumoDiarioWh > 1200) {
-        return {
-            consumoDiarioWh: consumoDiarioWh,
-            eficienciaNivel: "alta_demanda",
-            requiereOptimizacion: true
-        };
-    }
+        // 1. Comparar por nivel de riesgo de la falla
+        if (pesoB !== pesoA) {
+            return pesoB - pesoA; 
+        }
+
+        // 2. Desempatar por orden cronológico (menor hora de ingreso = llegó antes)
+        return vehiculoA.ingresoHoras - vehiculoB.ingresoHoras;
+    });
+
+    // Extraer solo las placas para el reporte de salida estructurado
+    const ordenPlacas = vehiculosOrdenados.map(v => v.placa);
 
     return {
-        consumoDiarioWh: consumoDiarioWh,
-        eficienciaNivel: "eficiente",
-        requiereOptimizacion: false
+        ordenAtencion: ordenPlacas,
+        motivo: "Se priorizan los fallos en sistema de frenos y dirección. Al haber empate, se atiende primero por orden de llegada física al taller."
     };
 }
 
 // Ejecución de pruebas para verificar consola
-console.log(evaluarEficienciaEnergetica({
-    nombre: "Servidor IoT ESP32",
-    consumoWatts: 60,
-    horasEncendido: 24
-})); // Caso Normal
+const colaTaller = [
+    { placa: "M-456B", fallaTipo: "cambio_aceite", ingresoHoras: 3 },
+    { placa: "P-123A", fallaTipo: "frenos", ingresoHoras: 2 },
+    { placa: "P-789C", fallaTipo: "frenos", ingresoHoras: 1 }
+];
 
-console.log(evaluarEficienciaEnergetica({
-    nombre: "Foco Inteligente",
-    consumoWatts: 12,
-    horasEncendido: -5
-})); // Caso Borde
+console.log(ordenarPrioridadesTaller(colaTaller)); // Caso Normal
+console.log(ordenarPrioridadesTaller([]));          // Caso Borde

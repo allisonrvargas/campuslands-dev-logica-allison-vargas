@@ -1,43 +1,46 @@
-function validarSenalSensor(sensor) {
-    // Caso borde: Datos nulos o voltajes negativos físicamente inválidos para el ADC
-    if (!sensor || sensor.voltajeLectura < 0 || sensor.limiteMaximo < 0) {
+function filtrarInventarioMotos(inventarioMotos, criteriosFiltro) {
+    // Caso borde: Inventario vacío, nulo o criterios de búsqueda no definidos
+    if (!inventarioMotos || inventarioMotos.length === 0 || !criteriosFiltro) {
         return {
-            estadoSenal: "error_voltaje_negativo",
-            voltajeExcedido: 0,
-            activarProteccion: false
+            motosFiltradas: [],
+            motivo: "El inventario de motocicletas se encuentra vacío o los criterios de búsqueda no están inicializados."
         };
     }
 
-    const { voltajeLectura, limiteMaximo } = sensor;
+    const { cilindrajeMinimo = 0, precioMaximo = Infinity } = criteriosFiltro;
 
-    // Proceso: Evaluar regla de negocio para sobretensión
-    if (voltajeLectura >= limiteMaximo) {
-        // Calcular la diferencia exacta del exceso
-        const voltajeExcedido = Number((voltajeLectura - limiteMaximo).toFixed(2));
+    // Proceso: Aplicar filtros condicionales por stock, cilindraje y presupuesto
+    const resultadoMotos = inventarioMotos.filter(moto => {
+        // 1. Validar que esté disponible en tienda
+        if (!moto.disponible) return false;
         
-        return {
-            estadoSenal: "sobrecarga",
-            voltajeExcedido: voltajeExcedido,
-            activarProteccion: true
-        };
-    }
+        // 2. Validar que cumpla con las especificaciones del motor y precio
+        const cumpleCilindraje = moto.cilindraje >= cilindrajeMinimo;
+        const cumplePrecio = moto.precio <= precioMaximo;
+
+        return cumpleCilindraje && cumplePrecio;
+    });
+
+    // Mapear el resultado para extraer únicamente los nombres de los modelos aptos
+    const modelosAptos = resultadoMotos.map(moto => moto.modelo);
 
     return {
-        estadoSenal: "lectura_nominal",
-        voltajeExcedido: 0,
-        activarProteccion: false
+        motosFiltradas: modelosAptos,
+        motivo: `Filtrado completado con éxito. Se encontraron ${modelosAptos.length} modelos que cumplen con los requisitos de rendimiento, costo y disponibilidad.`
     };
 }
 
 // Ejecución de pruebas para verificar consola
-console.log(validarSenalSensor({
-    tipo: "Infrarrojo TCRT5000",
-    voltajeLectura: 4.8,
-    limiteMaximo: 3.3
-})); // Caso Normal
+const stockConcesionario = [
+    { modelo: "Yamaha R3", cilindraje: 321, precio: 5500, disponible: true },
+    { modelo: "Honda CB190R", cilindraje: 184, precio: 3200, disponible: true },
+    { modelo: "Kawasaki Ninja 400", cilindraje: 399, precio: 6200, disponible: false }
+];
 
-console.log(validarSenalSensor({
-    tipo: "Ultrasonico HC-SR04",
-    voltajeLectura: -1.2,
-    limiteMaximo: 5.0
-})); // Caso Borde
+const misCriterios = { 
+    cilindrajeMinimo: 250, 
+    precioMaximo: 6000 
+};
+
+console.log(filtrarInventarioMotos(stockConcesionario, misCriterios)); // Caso Normal
+console.log(filtrarInventarioMotos([], misCriterios));               // Caso Borde
